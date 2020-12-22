@@ -13,16 +13,6 @@ const RECORD_FRAMES = FRAMES_PER_ROTATION;
 
 var canvas;
 
-// Create a capturer that exports an animated GIF
-// Notices you have to specify the path to the gif.worker.js 
-// var capturer = new CCapture({
-//   format: 'gif',
-//   workersPath: './js/',
-//   framerate: 30,
-//   verbose: true,
-//   // timeLimit: 1
-// });
-
 var gif = new GIF({
   // debug: true,
   quality: 0,
