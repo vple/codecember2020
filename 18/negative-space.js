@@ -41,7 +41,7 @@ const PERIOD_CONFIG = PERIOD_1_1;
 
 const UNIT_PIXELS = 30;
 
-const EXPORT_GIF = true,
+const EXPORT_GIF = false,
     RECORD_FRAMES = FPS * PERIOD_CONFIG.duration;
 
 let gif = new GIF({
@@ -57,10 +57,12 @@ gif.on('finished', function (blob) {
 
 function setup() {
   frameRate(FPS);
-  createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+  createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT, WEBGL);
+  // ortho(-CANVAS_WIDTH/2, CANVAS_WIDTH/2, CANVAS_HEIGHT/2, -CANVAS_HEIGHT/2);
 }
 
 function draw() {
+  translate(-CANVAS_WIDTH/2, -CANVAS_HEIGHT/2);
   const rows = CANVAS_WIDTH / UNIT_PIXELS,
       cols = CANVAS_HEIGHT / UNIT_PIXELS;
 
@@ -140,8 +142,10 @@ function draw() {
 function rotateSquare(x, y, length, rotationAmount, rotationPercentage) {
   push();
   translate(x, y);
-  rotate(-rotationAmount * rotationPercentage);
+  rotateZ(-rotationAmount * rotationPercentage);
+  // rotateX(-rotationAmount * rotationPercentage);
   square(-length / 2, -length / 2, length);
+  // box(length);
   pop();
 }
 
