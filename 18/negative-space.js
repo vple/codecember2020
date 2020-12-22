@@ -1,3 +1,5 @@
+// https://editor.p5js.org/vple/sketches/42nw6apUo
+
 const FPS = 30;
 
 const CANVAS_WIDTH = 400,
@@ -21,6 +23,21 @@ const PERIOD_1_1 = {
   subintervalStart: [0, .5, 1]
 };
 
+const PERIOD_1_1_1 = {
+  // Time it takes to animate an entire period, in seconds.
+  duration: 3,
+  // Maps the current "time", [0, 1), to the current mode.
+  // Time is normalized so that a period has length 1.
+  modeFn: (t) => floor(3 * t),
+  // Determines the duration of the current mode.
+  // Result should be normalized such that the sum of the durations for each mode equals 1.
+  modeDurationFn: () => 1/3,
+  // Start time of each subinterval, normalized to a period of 1. In other words:
+  // subintervalStart[i+1] - subintervalStart[i] = modeDurationFn(i)
+  // Should include an ending 1.
+  subintervalStart: [0, 1/3, 2/3, 1]
+};
+
 const PERIOD_1_1_1_1 = {
   // Time it takes to animate an entire period, in seconds.
   duration: 4,
@@ -37,7 +54,7 @@ const PERIOD_1_1_1_1 = {
 };
 
 // See comments in PERIOD_1_1 for expected values.
-const PERIOD_CONFIG = PERIOD_1_1;
+const PERIOD_CONFIG = PERIOD_1_1_1;
 
 const UNIT_PIXELS = 30;
 
@@ -61,8 +78,10 @@ function setup() {
   // ortho(-CANVAS_WIDTH/2, CANVAS_WIDTH/2, CANVAS_HEIGHT/2, -CANVAS_HEIGHT/2);
 }
 
+var px = CANVAS_WIDTH/4, py = CANVAS_HEIGHT/2;
+
 function draw() {
-  translate(-CANVAS_WIDTH/2, -CANVAS_HEIGHT/2);
+  translate(-CANVAS_WIDTH / 2, -CANVAS_HEIGHT / 2);
   const rows = CANVAS_WIDTH / UNIT_PIXELS,
       cols = CANVAS_HEIGHT / UNIT_PIXELS;
 
@@ -73,27 +92,58 @@ function draw() {
       subintervalFraction = subintervalTime / PERIOD_CONFIG.modeDurationFn(mode);
 
   noStroke();
-  switch(mode) {
+  switch (mode) {
     case 0:
     case 2:
       background(0);
       fill(255);
-      for (let i = 0; i <= rows; i++) {
-        for (let j = (i + mode) % 2; j <= cols; j += 2) {
+      for (let i = -2; i <= rows+2; i++) {
+        direction = 1;
+        // direction = 2*(i%2) - 1;
+        for (let j = (i + mode) % 2 - 2; j <= cols+2; j += 2) {
           x = j * UNIT_PIXELS;
           y = i * UNIT_PIXELS;
-          rotateSquare(x, y, UNIT_PIXELS, HALF_PI, subintervalFraction);
+
+          transform(
+              x, y,
+              subintervalFraction,
+              (percentage) => {
+                translate(2 * direction * UNIT_PIXELS * percentage, 0);
+                rotateZ(-HALF_PI * percentage);
+              },
+              () => square(-UNIT_PIXELS / 2, -UNIT_PIXELS / 2, UNIT_PIXELS)
+          );
         }
       }
       break;
     case 1:
       background(255);
       fill(0);
-      for (let i = 0; i <= rows; i++) {
-        for (let j = (i + mode) % 2; j <= cols; j += 2) {
+      // for (let i = 0; i <= rows; i++) {
+      //   for (let j = (i + mode) % 2; j <= cols; j += 2) {
+      //     x = j * UNIT_PIXELS;
+      //     y = i * UNIT_PIXELS;
+      //     rotateSquare(x, y, UNIT_PIXELS, HALF_PI, subintervalFraction);
+      //   }
+      // }
+
+      for (let i = -2; i <= rows+2; i++) {
+        direction = -1;
+        // direction = 2*(i%2) - 1;
+        for (let j = (i + mode) % 2 - 2; j <= cols*2; j += 2) {
           x = j * UNIT_PIXELS;
           y = i * UNIT_PIXELS;
-          rotateSquare(x, y, UNIT_PIXELS, HALF_PI, subintervalFraction);
+
+          transform(
+              x, y,
+              subintervalFraction,
+              (percentage) => {
+                // translate(0, 2 * direction * UNIT_PIXELS * percentage);
+                translate(4 * direction * UNIT_PIXELS * percentage, 2 * direction * UNIT_PIXELS * percentage);
+                rotateZ(-HALF_PI * percentage);
+              },
+              () => square(-UNIT_PIXELS / 2, -UNIT_PIXELS / 2, UNIT_PIXELS)
+          );
         }
       }
       break;
@@ -105,7 +155,7 @@ function draw() {
           x = j * UNIT_PIXELS;
           y = i * UNIT_PIXELS;
           // direction = 2*(i%2) - 1;
-          direction = i%2;
+          direction = i % 2;
           translateSquare(x, y, UNIT_PIXELS, 2 * direction * UNIT_PIXELS, 0, subintervalFraction);
         }
       }
@@ -113,6 +163,27 @@ function draw() {
     default:
       throw("unexpected!");
   }
+
+  strokeWeight(1);
+  stroke("#00f");
+  noFill();
+
+  let s = ((frameCount/(2*intervalFrames))%1);
+  // line(px, 0, px, CANVAS_HEIGHT);
+  push();
+  translate(CANVAS_WIDTH/2, CANVAS_HEIGHT/2);
+  rotate(TWO_PI * frameCount/intervalFrames);
+  square(-30, -30, 60);
+  pop();
+  // if (mode !== 1) {
+  //   px = (px + CANVAS_WIDTH/intervalFrames/2) % CANVAS_WIDTH;
+  //   // px = (px + CANVAS_WIDTH * frameCount / (4 * intervalFrames)) % CANVAS_WIDTH;
+  // }
+  // line(CANVAS_WIDTH * s, 0, CANVAS_WIDTH * s, CANVAS_HEIGHT);
+  // // point(px, py);
+  // let r = noise(px, py, frameCount/intervalFrames);
+  // px += 3 * cos(r*TWO_PI);
+  // py += 3 * sin(r*TWO_PI);
 
   if (EXPORT_GIF) {
     if (frameCount <= RECORD_FRAMES) {
@@ -165,5 +236,13 @@ function translateSquare(x, y, length, xOffset, yOffset, percentage) {
       cy = y + yOffset * percentage;
   translate(cx, cy);
   square(-length / 2, -length / 2, length);
+  pop();
+}
+
+function transform(x, y, percentage, transformationFn, drawFn) {
+  push();
+  translate(x, y);
+  transformationFn(percentage);
+  drawFn();
   pop();
 }
