@@ -9,17 +9,16 @@ const BACKGROUND_COLOR = 28,
 const EXPORT_GIF = false,
     RECORD_FRAMES = FPS * 2;
 
-if (EXPORT_GIF) {
-  let gif = new GIF({
-    quality: 0,
-    workerScript: "./js/gif.worker.js",
-    workers: 5
-  });
+let gif = new GIF({
+  debug: true,
+  quality: 0,
+  workerScript: "./gif.worker.js",
+  workers: 5
+});
 
-  gif.on('finished', function (blob) {
-    window.open(URL.createObjectURL(blob));
-  });
-}
+gif.on('finished', function (blob) {
+  window.open(URL.createObjectURL(blob));
+});
 
 function setup() {
   frameRate(FPS);
